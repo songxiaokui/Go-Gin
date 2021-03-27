@@ -1,6 +1,9 @@
 package biz
 
-import "Go-Gin/Gorm/configs"
+import (
+	"Go-Gin/Gorm/configs"
+	"gorm.io/gorm"
+)
 
 /*
 @Time    : 2021/3/26 21:57
@@ -11,6 +14,8 @@ import "Go-Gin/Gorm/configs"
 */
 
 type Proxies struct {
+	// embed
+	*BaseModel
 	ID      int    `gorm:"column:id;primaryKey;autoIncrement"`
 	IP      string `gorm:"column:ip"`
 	Port    int    `gorm:"column:port"`
@@ -25,12 +30,8 @@ func (*Proxies) TableName() string {
 
 // 构造对象
 func NewProxies() *Proxies {
-	return &Proxies{}
-}
-
-// 根据ID获取数据
-func (p *Proxies) LoadById(id int) *Proxies {
-	configs.SqlDb.First(p, id)
+	p := &Proxies{}
+	p.BaseModel = Base(p)
 	return p
 }
 
@@ -39,4 +40,32 @@ func (p *Proxies) LoadByPort(port int) *Proxies {
 	p.Port = port
 	configs.SqlDb.Where(p).First(p)
 	return p
+}
+
+// 暂时只针对一个字段进行的编写，后面会抽像一个基类，进行封装
+func (p *Proxies) IdCompareGenerate(value int, opt int) CompareFunc {
+	return func(db *gorm.DB) *gorm.DB {
+		switch opt {
+		case CompareGraterThan:
+			return db.Where("id > ?", value)
+		case CompareLessThan:
+			return db.Where("id < ?", value)
+		case CompareGraterEqual:
+			return db.Where("id >= ?", value)
+		case CompareLessEqual:
+			return db.Where("id <= ?", value)
+		case ComPareLike:
+			return db.Where("id like ?", value)
+		default:
+			return db.Where("id = ?", value)
+		}
+	}
+}
+
+func (p *Proxies) IdCompare(value int, opt int) CompareFunc {
+	return p.IdCompareGenerate(value, opt)
+}
+
+func (p *Proxies) Filter(cf ...func(*gorm.DB) *gorm.DB) {
+	configs.SqlDb.Scopes(cf...).First(p)
 }
