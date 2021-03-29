@@ -3,6 +3,7 @@ package server
 import (
 	"Go-Gin/Proxies/internal/proxy/biz"
 	"Go-Gin/Proxies/internal/proxy/data"
+	myerror "Go-Gin/Proxies/internal/proxy/pkg/error"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -43,19 +44,25 @@ func ProxiesListHandler(c *gin.Context) {
 // create proxy to save database
 func CreateProxyHandler(c *gin.Context) {
 	// 将对象映射为DTO对象，传递进行处理
+	//dto := biz.ProxyDTO{}
+	//err := c.BindJSON(&dto)
+	//fmt.Println("接受到的数据:", dto)
+	//if err != nil {
+	//	// c.JSON(http.StatusOK, gin.H{"msg": err.Error()})
+	//	// 使用middleware封装的捕获异常操作
+	//	panic(err.Error())
+	//	return
+	//}
+	//err = business.AddOneProxy(&dto)
+	//if err != nil {
+	//	panic(err.Error())
+	//}
+	//c.JSON(http.StatusOK, gin.H{"msg": http.StatusText(http.StatusOK)})
+
+	// 使用自定义error包装单错误返回对象
 	dto := biz.ProxyDTO{}
-	err := c.BindJSON(&dto)
-	fmt.Println("接受到的数据:", dto)
-	if err != nil {
-		// c.JSON(http.StatusOK, gin.H{"msg": err.Error()})
-		// 使用middleware封装的捕获异常操作
-		panic(err.Error())
-		return
-	}
-	err = business.AddOneProxy(&dto)
-	if err != nil {
-		panic(err.Error())
-	}
+	myerror.MakeSignalError(c.BindJSON(&dto)).Unwrap()
+	myerror.MakeSignalError(business.AddOneProxy(&dto)).Unwrap()
 	c.JSON(http.StatusOK, gin.H{"msg": http.StatusText(http.StatusOK)})
 }
 
