@@ -68,14 +68,21 @@ func CreateProxyHandler(c *gin.Context) {
 
 // delete proxy from database
 func DeleteProxyHandler(c *gin.Context) {
+	//id := c.Param("id")
+	//proxyId, err := strconv.Atoi(id)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"data": nil, "msg": err.Error()})
+	//	return
+	//}
+	//d := business.DeleteOneProxyById(proxyId)
+	//c.JSON(http.StatusOK, gin.H{"data": d, "msg": "OK"})
+
+	// 简化后代码
 	id := c.Param("id")
-	proxyId, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": nil, "msg": err.Error()})
-		return
-	}
-	d := business.DeleteOneProxyById(proxyId)
-	c.JSON(http.StatusOK, gin.H{"data": d, "msg": "OK"})
+	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
+	myerror.MakeMultiError(business.DeleteOneProxyById(proxyId.(int)))
+	c.JSON(http.StatusOK, gin.H{"msg": "OK"})
+
 }
 
 // search a proxy by id
