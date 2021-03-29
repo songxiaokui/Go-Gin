@@ -2,6 +2,8 @@ package main
 
 import (
 	"Go-Gin/Proxies/internal/proxy/pkg/middleware"
+	// 此处是一个小细节，验证器初始化的加载在单独的包，所以要主动的引入
+	_ "Go-Gin/Proxies/internal/proxy/pkg/validator"
 	"Go-Gin/Proxies/internal/proxy/server"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -23,6 +25,7 @@ func main() {
 	s := gin.Default()
 	v1 := s.Group("/v1/proxies")
 	{
+		v1.Use(middleware.ErrorMiddleware())
 		// 获取资源列表,已经添加了v1组的前缀了,可以添加query参数
 		//v1.GET("", server.ProxiesListHandlerFunc())
 		v1.GET("", server.ProxiesListHandler)

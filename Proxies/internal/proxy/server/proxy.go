@@ -47,15 +47,16 @@ func CreateProxyHandler(c *gin.Context) {
 	err := c.BindJSON(&dto)
 	fmt.Println("接受到的数据:", dto)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"msg": err.Error()})
+		// c.JSON(http.StatusOK, gin.H{"msg": err.Error()})
+		// 使用middleware封装的捕获异常操作
+		panic(err.Error())
 		return
 	}
 	err = business.AddOneProxy(&dto)
-	var msg string = http.StatusText(http.StatusOK)
 	if err != nil {
-		msg = err.Error()
+		panic(err.Error())
 	}
-	c.JSON(http.StatusOK, gin.H{"msg": msg})
+	c.JSON(http.StatusOK, gin.H{"msg": http.StatusText(http.StatusOK)})
 }
 
 // delete proxy from database
