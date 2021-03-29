@@ -1,6 +1,8 @@
 package main
 
 import (
+	"Go-Gin/Proxies/internal/proxy/pkg/middleware"
+	"Go-Gin/Proxies/internal/proxy/server"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -19,6 +21,25 @@ import (
 
 func main() {
 	s := gin.Default()
+	v1 := s.Group("/v1/proxies")
+	{
+		// 获取资源列表,已经添加了v1组的前缀了,可以添加query参数
+		//v1.GET("", server.ProxiesListHandlerFunc())
+		v1.GET("", server.ProxiesListHandler)
+
+		// 根据id获取资源详情
+		v1.GET("/:id", server.GetProxyByIdHandler)
+
+		// 添加权限认证
+		v1.Use(middleware.AuthenticationMiddleware())
+		{
+			// 添加一个资源
+			v1.POST("", server.CreateProxyHandler)
+			// 删除一个资源
+			v1.DELETE("/:id", server.DeleteProxyHandler)
+		}
+
+	}
 	s.GET("/", func(context *gin.Context) {
 		context.Writer.Write([]byte("hello gin"))
 	})
