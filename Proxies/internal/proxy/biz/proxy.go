@@ -29,7 +29,7 @@ type ProxyDTO struct {
 
 // 查询传输对象
 type ProxySearchDTO struct {
-	Id    int `json:"id" form:"id" binding:"required"`
+	Id    int `json:"id" form:"id" `
 	Limit int `json:"limit" form:"limit"`
 	Page  int `json:"page" form:"page"`
 }

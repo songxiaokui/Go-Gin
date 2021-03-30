@@ -4,7 +4,7 @@ import (
 	"Go-Gin/Proxies/internal/proxy/biz"
 	"Go-Gin/Proxies/internal/proxy/data"
 	myerror "Go-Gin/Proxies/internal/proxy/pkg/error"
-	"fmt"
+	myrsp "Go-Gin/Proxies/internal/proxy/pkg/responseJson"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -31,14 +31,20 @@ func ProxiesListHandlerFunc() gin.HandlerFunc {
 func ProxiesListHandler(c *gin.Context) {
 	// 此处测试查询参数的验证器，但是没有使用数据库的查询
 	search := biz.ProxySearchDTO{}
-	err := c.Bind(&search)
-	fmt.Println("参数绑定校验: ", err)
+	//err := c.Bind(&search)
+	//fmt.Println("参数绑定校验: ", err)
+	//
+	//if d, err := business.GetAllProxiesInfo(); err != nil {
+	//	c.IndentedJSON(http.StatusOK, gin.H{"data": nil, "count": 0, "msg": err.Error()})
+	//} else {
+	//	c.IndentedJSON(http.StatusOK, gin.H{"data": d, "count": len(d), "msg": "OK"})
+	//}
+	// 使用自定义错误处理
+	myerror.MakeMultiError(c.Bind(&search)).Unwrap()
+	dataList := myerror.MakeMultiError(business.GetAllProxiesInfo()).Unwrap()
+	// 能走到这里，说明肯定成功，直接将结果包装返回,使用自定义json返回
+	myrsp.ResponseOK(c)("200001", "OK", dataList)
 
-	if d, err := business.GetAllProxiesInfo(); err != nil {
-		c.IndentedJSON(http.StatusOK, gin.H{"data": nil, "count": 0, "msg": err.Error()})
-	} else {
-		c.IndentedJSON(http.StatusOK, gin.H{"data": d, "count": len(d), "msg": "OK"})
-	}
 }
 
 // create proxy to save database
@@ -63,7 +69,9 @@ func CreateProxyHandler(c *gin.Context) {
 	dto := biz.ProxyDTO{}
 	myerror.MakeSignalError(c.BindJSON(&dto)).Unwrap()
 	myerror.MakeSignalError(business.AddOneProxy(&dto)).Unwrap()
-	c.JSON(http.StatusOK, gin.H{"msg": http.StatusText(http.StatusOK)})
+	// 使用自定义json封装处理返回响应
+	// c.JSON(http.StatusOK, gin.H{"msg": http.StatusText(http.StatusOK)})
+	myrsp.ResponseOK(c)("2000001", "OK", nil)
 }
 
 // delete proxy from database
@@ -81,18 +89,25 @@ func DeleteProxyHandler(c *gin.Context) {
 	id := c.Param("id")
 	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
 	myerror.MakeMultiError(business.DeleteOneProxyById(proxyId.(int)))
-	c.JSON(http.StatusOK, gin.H{"msg": "OK"})
+	// c.JSON(http.StatusOK, gin.H{"msg": "OK"})
+	myrsp.ResponseOK(c)("2000003", "OK", nil)
 
 }
 
 // search a proxy by id
 func GetProxyByIdHandler(c *gin.Context) {
+	//id := c.Param("id")
+	//proxyId, err := strconv.Atoi(id)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"data": nil, "msg": err.Error()})
+	//	return
+	//}
+	//d := business.GetProxyById(proxyId)
+	//c.JSON(http.StatusOK, gin.H{"data": d, "msg": "OK"})
+
+	//// 使用简化了错误处理和响应处理代码
 	id := c.Param("id")
-	proxyId, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": nil, "msg": err.Error()})
-		return
-	}
-	d := business.GetProxyById(proxyId)
-	c.JSON(http.StatusOK, gin.H{"data": d, "msg": "OK"})
+	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
+	myrsp.ResponseOK(c)("2000001", "OK", business.GetProxyById(proxyId.(int)))
+
 }
