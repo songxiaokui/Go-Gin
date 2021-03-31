@@ -43,7 +43,7 @@ func ProxiesListHandler(c *gin.Context) {
 	myerror.MakeMultiError(c.Bind(&search)).Unwrap()
 	dataList := myerror.MakeMultiError(business.GetAllProxiesInfo()).Unwrap()
 	// 能走到这里，说明肯定成功，直接将结果包装返回,使用自定义json返回
-	myrsp.ResponseOK(c)("200001", "OK", dataList)
+	myrsp.R(c)("200001", "OK", dataList)(myrsp.OK)
 
 }
 
@@ -71,7 +71,7 @@ func CreateProxyHandler(c *gin.Context) {
 	myerror.MakeSignalError(business.AddOneProxy(&dto)).Unwrap()
 	// 使用自定义json封装处理返回响应
 	// c.JSON(http.StatusOK, gin.H{"msg": http.StatusText(http.StatusOK)})
-	myrsp.ResponseOK(c)("2000001", "OK", nil)
+	myrsp.R(c)("2000001", "OK", nil)(myrsp.OK)
 }
 
 // delete proxy from database
@@ -90,7 +90,7 @@ func DeleteProxyHandler(c *gin.Context) {
 	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
 	myerror.MakeMultiError(business.DeleteOneProxyById(proxyId.(int)))
 	// c.JSON(http.StatusOK, gin.H{"msg": "OK"})
-	myrsp.ResponseOK(c)("2000003", "OK", nil)
+	myrsp.R(c)("2000003", "OK", nil)(myrsp.OK)
 
 }
 
@@ -108,6 +108,6 @@ func GetProxyByIdHandler(c *gin.Context) {
 	//// 使用简化了错误处理和响应处理代码
 	id := c.Param("id")
 	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
-	myrsp.ResponseOK(c)("2000001", "OK", business.GetProxyById(proxyId.(int)))
+	myrsp.R(c)("2000001", "OK", business.GetProxyById(proxyId.(int)))(myrsp.OK)
 
 }

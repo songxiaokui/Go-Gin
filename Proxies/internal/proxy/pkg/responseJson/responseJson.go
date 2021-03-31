@@ -42,10 +42,30 @@ func init() {
 }
 
 // 使用闭包修改内部数据
-type ResultFunc func(code, msg string, result interface{})
+type ResultFunc func(code, msg string, result interface{}) func(response OutResponse)
 
-func ResponseOK(c *gin.Context) ResultFunc {
-	return func(code, msg string, result interface{}) {
+// 最开始版本是没有返回值
+//type ResultFunc func(code, msg string, result interface{})
+//func ResponseOK(c *gin.Context) ResultFunc {
+//	return func(code, msg string, result interface{}) {
+//		// 获取对象池中的对象并进行断言
+//		d := ResultPoll.Get().(*JSONResponse)
+//		defer ResultPoll.Put(d)
+//		// 修改其中的值
+//		d.Code = code
+//		d.Msg = msg
+//		d.Result = result
+//		c.JSON(http.StatusOK, d)
+//	}
+//}
+
+// 如果添加一些业务判断逻辑,就是参数判断错误需要抛出的错误
+// 进一步封装
+type OutResponse func(c *gin.Context, v interface{})
+
+// 将上述的OKResponse进行抽象，主要是解耦gin
+func R(c *gin.Context) ResultFunc {
+	return func(code, msg string, result interface{}) func(response OutResponse) {
 		// 获取对象池中的对象并进行断言
 		d := ResultPoll.Get().(*JSONResponse)
 		defer ResultPoll.Put(d)
@@ -53,6 +73,17 @@ func ResponseOK(c *gin.Context) ResultFunc {
 		d.Code = code
 		d.Msg = msg
 		d.Result = result
-		c.JSON(http.StatusOK, d)
+		return func(response OutResponse) {
+			response(c, d)
+		}
 	}
+}
+
+func OK(c *gin.Context, d interface{}) {
+	// 此处还可以加过滤
+	c.JSON(http.StatusOK, d)
+}
+
+func Failed(c *gin.Context, d interface{}) {
+	c.JSON(http.StatusBadRequest, d)
 }
