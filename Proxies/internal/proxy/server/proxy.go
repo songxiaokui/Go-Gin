@@ -7,7 +7,6 @@ import (
 	myrsp "Go-Gin/Proxies/internal/proxy/pkg/responseJson"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 /*
@@ -85,11 +84,19 @@ func DeleteProxyHandler(c *gin.Context) {
 	//d := business.DeleteOneProxyById(proxyId)
 	//c.JSON(http.StatusOK, gin.H{"data": d, "msg": "OK"})
 
-	// 简化后代码
-	id := c.Param("id")
-	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
-	myerror.MakeMultiError(business.DeleteOneProxyById(proxyId.(int)))
-	// c.JSON(http.StatusOK, gin.H{"msg": "OK"})
+	//// 简化后代码
+	//id := c.Param("id")
+	//proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
+	//myerror.MakeMultiError(business.DeleteOneProxyById(proxyId.(int)))
+	//// c.JSON(http.StatusOK, gin.H{"msg": "OK"})
+	//myrsp.R(c)("2000003", "OK", nil)(myrsp.OK)
+
+	// 继续简化路由参数的校验,使用一个匿名struct包裹验证的参数
+	id := &struct {
+		Id int `uri:"id" binding:"required,gt=0"`
+	}{}
+	myerror.MakeMultiError(c.ShouldBindUri(id)).Unwrap()
+	myerror.MakeMultiError(business.DeleteOneProxyById(id.Id))
 	myrsp.R(c)("2000003", "OK", nil)(myrsp.OK)
 
 }
@@ -106,8 +113,13 @@ func GetProxyByIdHandler(c *gin.Context) {
 	//c.JSON(http.StatusOK, gin.H{"data": d, "msg": "OK"})
 
 	//// 使用简化了错误处理和响应处理代码
-	id := c.Param("id")
-	proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
-	myrsp.R(c)("2000001", "OK", business.GetProxyById(proxyId.(int)))(myrsp.OK)
+	//id := c.Param("id")
+	//proxyId := myerror.MakeMultiError(strconv.Atoi(id)).Unwrap()
+	//myrsp.R(c)("2000001", "OK", business.GetProxyById(proxyId.(int)))(myrsp.OK)
 
+	id := &struct {
+		Id int `uri:"id" binding:"required,gt=0"`
+	}{}
+	myerror.MakeMultiError(c.ShouldBindUri(id)).Unwrap()
+	myrsp.R(c)("2000001", "OK", business.GetProxyById(id.Id))(myrsp.OK)
 }
