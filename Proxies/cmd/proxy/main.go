@@ -23,6 +23,9 @@ import (
 
 func main() {
 	s := gin.Default()
+	// 使用包装简化路由等
+	server.NewMyEngine(s).SayHelloHandler()
+
 	v1 := s.Group("/v1/proxies")
 	{
 		v1.Use(middleware.ErrorMiddleware())

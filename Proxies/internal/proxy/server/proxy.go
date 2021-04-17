@@ -123,3 +123,24 @@ func GetProxyByIdHandler(c *gin.Context) {
 	myerror.MakeMultiError(c.ShouldBindUri(id)).Unwrap()
 	myrsp.R(c)("2000001", "OK", business.GetProxyById(id.Id))(myrsp.OK)
 }
+
+type MyEngine struct {
+	*gin.Engine
+}
+
+func NewMyEngine(e *gin.Engine) *MyEngine {
+	return &MyEngine{e}
+}
+
+// add business handlerFunc
+func (c *MyEngine) SayHelloFunc() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		// 具体业务逻辑处理
+		context.JSON(http.StatusOK, gin.H{"msg": "hello gin!"})
+	}
+}
+
+// create handle to deal this handlerFunc
+func (c *MyEngine) SayHelloHandler() {
+	c.Handle("GET", "/say", c.SayHelloFunc())
+}
